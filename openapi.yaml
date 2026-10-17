@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Notes API
+  version: 1.0.0
+  description: API сервиса заметок. Авторизации нет, список общий.
+servers:
+  - url: /
+tags:
+  - name: Notes
+paths:
+  /api/notes:
+    get:
+      tags: [Notes]
+      summary: Список заметок
+      operationId: listNotes
+      description: Сначала новые. Поиск по заголовку и тексту.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+        - name: q
+          in: query
+          description: Строка поиска
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Note' }
+                  meta:
+                    type: object
+                    properties:
+                      total: { type: integer, example: 1 }
+                      limit: { type: integer, example: 20 }
+                      offset: { type: integer, example: 0 }
+    post:
+      tags: [Notes]
+      summary: Создать заметку
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteInput' }
+            example: { title: Покупки, content: 'Молоко, хлеб' }
+      responses:
+        '201':
+          description: Создано
+          headers:
+            Location:
+              schema: { type: string, example: /api/notes/1 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NoteResponse' }
+        '400': { $ref: '#/components/responses/InvalidJson' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/notes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, example: 1 }
+    get:
+      tags: [Notes]
+      summary: Получить заметку
+      operationId: getNote
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NoteResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Notes]
+      summary: Обновить заметку
+      operationId: updateNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteInput' }
+            example: { title: Покупки на выходные, content: Кофе }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NoteResponse' }
+        '400': { $ref: '#/components/responses/InvalidJson' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Notes]
+      summary: Удалить заметку
+      operationId: deleteNote
+      responses:
+        '204': { description: Удалено }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  schemas:
+    NoteInput:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 200, example: Идеи на выходные }
+        content: { type: string, maxLength: 20000, default: '', example: Сходить в музей }
+    Note:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: Идеи на выходные }
+        content: { type: string, example: Сходить в музей }
+        created_at: { type: string, format: date-time, example: '2026-10-16T12:00:00Z' }
+        updated_at: { type: string, format: date-time, example: '2026-10-16T12:05:00Z' }
+    NoteResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Note' }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string, example: validation_error }
+            message: { type: string, example: Проверьте переданные данные. }
+            details:
+              type: object
+              additionalProperties: { type: string }
+              example: { title: Введите заголовок. }
+  responses:
+    InvalidJson:
+      description: Некорректный JSON
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: invalid_json, message: Некорректный JSON. } }
+    NotFound:
+      description: Не найдено
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: not_found, message: Заметка не найдена. } }
+    ValidationError:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

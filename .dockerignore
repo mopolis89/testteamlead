@@ -1,0 +1,12 @@
+.git
+vendor
+frontend/node_modules
+frontend/dist
+storage/*
+!storage/.gitkeep
+public/assets
+public/docs
+public/index.html
+public/favicon.svg
+public/openapi.yaml
+.phpunit.cache

@@ -1,0 +1,16 @@
+/vendor/
+/frontend/node_modules/
+/frontend/dist/
+
+# сборка фронта, копируется в public
+/public/assets/
+/public/docs/
+/public/index.html
+/public/favicon.svg
+/public/openapi.yaml
+
+/storage/*
+!/storage/.gitkeep
+
+/.phpunit.cache/
+.DS_Store

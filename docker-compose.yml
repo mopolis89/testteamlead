@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    # приложение будет на http://localhost:8080
+    ports:
+      - "8080:80"
+    # база лежит в томе, поэтому переживает пересборку и пересоздание контейнера
+    volumes:
+      - notes_data:/var/www/html/storage
+    restart: unless-stopped
+
+volumes:
+  notes_data:
